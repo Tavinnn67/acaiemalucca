@@ -28,6 +28,9 @@
 <h2>Acompanhamentos</h2>
 <div id="acompanhamentos" class="opcoes"></div>
 
+<h2>Cremes</h2>
+<div id="cremes" class="opcoes"></div>
+
 <button onclick="adicionar()">Adicionar ao pedido</button>
 
 </section>
@@ -91,6 +94,12 @@ const acompanhamentos = [
     "Morango"
 ];
 
+const cremes = [
+    "Avelã",
+    "Ninho",
+    "Paçoca"
+];
+
 function selecionarTipo(tipo) {
     tipoSelecionado = tipo;
 
@@ -127,6 +136,7 @@ function mostrarTamanhos() {
     });
 
     mostrarAcompanhamentos();
+    mostrarCremes();
 }
 
 function mostrarAcompanhamentos() {
@@ -134,6 +144,22 @@ function mostrarAcompanhamentos() {
     div.innerHTML = "";
 
     acompanhamentos.forEach(nome => {
+        let btn = document.createElement("button");
+        btn.textContent = nome;
+
+        btn.onclick = () => {
+            btn.classList.toggle("ativo");
+        };
+
+        div.appendChild(btn);
+    });
+}
+
+function mostrarCremes() {
+    let div = document.getElementById("cremes");
+    div.innerHTML = "";
+
+    cremes.forEach(nome => {
         let btn = document.createElement("button");
         btn.textContent = nome;
 
@@ -158,10 +184,15 @@ function adicionar() {
         acompanhamentosSelecionados.push(btn.textContent);
     });
 
+    let cremesSelecionados = [];
+    document.querySelectorAll("#cremes button.ativo").forEach(btn => {
+        cremesSelecionados.push(btn.textContent);
+    });
+
     pedido.push({
         tipo: tipoSelecionado,
         tamanho: tamanhoSelecionado,
-        acompanhamentos: acompanhamentosSelecionados,
+        acompanhamentos: [...acompanhamentosSelecionados, ...cremesSelecionados],
         preco: preco
     });
 
