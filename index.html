@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Açaí Emalucca</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Açaí Emalucca</h1>
+    <p>Monte seu pedido online</p>
+</header>
+
+<section>
+
+<h2>Escolha o tipo</h2>
+<div class="opcoes">
+    <button onclick="selecionarTipo('pote')" id="btnPote">Pote</button>
+    <button onclick="selecionarTipo('trufado')" id="btnTrufado">Trufado</button>
+</div>
+
+<h2>Tamanho</h2>
+<div id="tamanhos" class="opcoes"></div>
+
+<h2>Acompanhamentos</h2>
+<div id="acompanhamentos" class="opcoes"></div>
+
+<button onclick="adicionar()">Adicionar ao pedido</button>
+
+</section>
+
+<section>
+
+<h2>🛒 Carrinho</h2>
+<ul id="lista"></ul>
+
+<p>Subtotal: R$ <span id="subtotal">0</span></p>
+
+<h3>Entrega</h3>
+<select id="taxa" onchange="calcularTotal()">
+    <option value="5">Próximo - R$5</option>
+    <option value="8">Médio - R$8</option>
+    <option value="12">Distante - R$12</option>
+</select>
+
+<p>Total: R$ <span id="total">0</span></p>
+
+</section>
+
+<section>
+
+<h2>Seus dados</h2>
+<input type="text" id="nome" placeholder="Seu nome">
+<input type="text" id="endereco" placeholder="Seu endereço">
+
+<button onclick="enviarWhats()">Finalizar Pedido</button>
+
+</section>
+
+<a class="whats" href="https://wa.me/5511951247812" target="_blank">
+📲 WhatsApp
+</a>
+
+<script>
+
+let tipoSelecionado = "pote";
+let tamanhoSelecionado = "";
+let pedido = [];
+
+const precos = {
+    pote: {
+        "250ml": 15, "300ml": 18, "350ml": 21,
+        "473ml": 27, "500ml": 29, "750ml": 34, "1L": 44
+    },
+    trufado: {
+        "300ml": 25, "400ml": 28, "500ml": 33, "700ml": 39
+    }
+};
+
+const acompanhamentos = [
+    "Sucrilhos",
+    "Granola",
+    "Leite Condensado",
+    "Leite em Pó",
+    "Paçoca",
+    "Banana",
+    "Uva",
+    "Morango"
+];
+
+function selecionarTipo(tipo) {
+    tipoSelecionado = tipo;
+
+    document.getElementById("btnPote").classList.remove("ativo");
+    document.getElementById("btnTrufado").classList.remove("ativo");
+
+    if(tipo === "pote") {
+        document.getElementById("btnPote").classList.add("ativo");
+    } else {
+        document.getElementById("btnTrufado").classList.add("ativo");
+    }
+
+    mostrarTamanhos();
+}
+
+function mostrarTamanhos() {
+    let div = document.getElementById("tamanhos");
+    div.innerHTML = "";
+
+    let tamanhos = Object.keys(precos[tipoSelecionado]);
+
+    tamanhos.forEach(t => {
+        let btn = document.createElement("button");
+        btn.textContent = t + " - R$" + precos[tipoSelecionado][t];
+
+        btn.onclick = () => {
+            tamanhoSelecionado = t;
+
+            document.querySelectorAll("#tamanhos button").forEach(b => b.classList.remove("ativo"));
+            btn.classList.add("ativo");
+        };
+
+        div.appendChild(btn);
+    });
+
+    mostrarAcompanhamentos();
+}
+
+function mostrarAcompanhamentos() {
+    let div = document.getElementById("acompanhamentos");
+    div.innerHTML = "";
+
+    acompanhamentos.forEach(nome => {
+        let btn = document.createElement("button");
+        btn.textContent = nome;
+
+        btn.onclick = () => {
+            btn.classList.toggle("ativo");
+        };
+
+        div.appendChild(btn);
+    });
+}
+
+function adicionar() {
+    if (!tamanhoSelecionado) {
+        alert("Escolha um tamanho!");
+        return;
+    }
+
+    let preco = precos[tipoSelecionado][tamanhoSelecionado];
+
+    let acompanhamentosSelecionados = [];
+    document.querySelectorAll("#acompanhamentos button.ativo").forEach(btn => {
+        acompanhamentosSelecionados.push(btn.textContent);
+    });
+
+    pedido.push({
+        tipo: tipoSelecionado,
+        tamanho: tamanhoSelecionado,
+        acompanhamentos: acompanhamentosSelecionados,
+        preco: preco
+    });
+
+    atualizarLista();
+}
+
+function atualizarLista() {
+    let lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    let subtotal = 0;
+
+    pedido.forEach((item, index) => {
+        let li = document.createElement("li");
+
+        li.innerHTML = `
+            ${item.tipo} ${item.tamanho} ${item.acompanhamentos.length > 0 ? ' c/ ' + item.acompanhamentos.join(', ') : ''} - R$${item.preco}
+            <button onclick="remover(${index})">❌</button>
+        `;
+
+        lista.appendChild(li);
+        subtotal += item.preco;
+    });
+
+    document.getElementById("subtotal").textContent = subtotal;
+    calcularTotal();
+}
+
+function remover(index) {
+    pedido.splice(index, 1);
+    atualizarLista();
+}
+
+function calcularTotal() {
+    let subtotal = pedido.reduce((s, i) => s + i.preco, 0);
+    let taxa = Number(document.getElementById("taxa").value);
+
+    document.getElementById("total").textContent = subtotal + taxa;
+}
+
+function enviarWhats() {
+    let nome = document.getElementById("nome").value;
+    let endereco = document.getElementById("endereco").value;
+
+    if (!nome || !endereco) {
+        alert("Preencha seus dados!");
+        return;
+    }
+
+    document.getElementById("modalPix").style.display = "block";
+}
+
+function fecharModal() {
+    document.getElementById("modalPix").style.display = "none";
+}
+
+function imprimir() {
+
+    let nome = document.getElementById("nome").value;
+    let endereco = document.getElementById("endereco").value;
+
+    let conteudo = `
+    <h2>Açaí Emalucca</h2>
+    <p><strong>Cliente:</strong> ${nome}</p>
+    <p><strong>Endereço:</strong> ${endereco}</p>
+    <hr>
+    `;
+
+    pedido.forEach(item => {
+        conteudo += `<p>${item.tipo} ${item.tamanho} ${item.acompanhamentos.length > 0 ? ' c/ ' + item.acompanhamentos.join(', ') : ''} - R$${item.preco}</p>`;
+    });
+
+    conteudo += `<hr><h3>Total: R$${document.getElementById("total").textContent}</h3>`;
+
+    let tela = window.open("", "", "width=300,height=600");
+
+    tela.document.write(conteudo);
+    tela.document.close();
+    tela.print();
+}
+
+selecionarTipo("pote");
+
+</script>
+<div id="modalPix" class="modal">
+    <div class="modal-content">
+        <h2>Pagamento via PIX</h2>
+        <p>Chave PIX:</p>
+        <strong id="chavePix">11951247812</strong>
+
+        <p>Após o pagamento, envie o comprovante no WhatsApp</p>
+
+        <button onclick="fecharModal()">Fechar</button>
+    </div>
+</div>
+</body>
+</html>
